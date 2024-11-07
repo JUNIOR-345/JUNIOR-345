@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aviator Game</title>
+  <style>
+    /* CSS Styles */
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background-color: #f4f4f4;
+    }
+
+    #container {
+      text-align: center;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 300px;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    label, #winnings {
+      font-weight: bold;
+    }
+
+    input {
+      margin: 10px 0;
+      padding: 8px;
+      font-size: 1em;
+      width: 100%;
+    }
+
+    #multiplier {
+      font-size: 2em;
+      margin: 15px 0;
+      animation: pulse 0.5s infinite alternate;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      margin: 5px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    #message {
+      margin-top: 20px;
+      color: #ff3333;
+      font-weight: bold;
+    }
+
+    @keyframes pulse {
+      from {
+        transform: scale(1);
+      }
+      to {
+        transform: scale(1.1);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h1>Aviator Crash Game</h1>
+    
+    <!-- Betting Amount Input -->
+    <label for="betAmount">Bet Amount: $</label>
+    <input type="number" id="betAmount" placeholder="Enter your bet" min="1">
+    
+    <!-- Multiplier Display -->
+    <div id="multiplier">1.00x</div>
+    <div id="winnings">Winnings: $0.00</div>
+
+    <!-- Buttons -->
+    <button id="startBtn">Start</button>
+    <button id="stopBtn" disabled>Stop</button>
+    
+    <!-- Message Display -->
+    <div id="message"></div>
+  </div>
+
+  <!-- Audio Files -->
+  <audio id="startSound" src="start.mp3"></audio>
+  <audio id="stopSound" src="stop.mp3"></audio>
+  <audio id="crashSound" src="crash.mp3"></audio>
+
+  <script>
+    // JavaScript Code
+    let multiplier = 1.0;
+    let interval;
+    let isRunning = false;
+    let betAmount = 0;
+    let winnings = 0;
+
+    const multiplierDisplay = document.getElementById("multiplier");
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const messageDisplay = document.getElementById("message");
+    const betInput = document.getElementById("betAmount");
+    const winningsDisplay = document.getElementById("winnings");
+
+    // Sound elements
+    const startSound = document.getElementById("startSound");
+    const stopSound = document.getElementById("stopSound");
+    const crashSound = document.getElementById("crashSound");
+
+    startBtn.addEventListener("click", startGame);
+    stopBtn.addEventListener("click", stopGame);
+
+    function startGame() {
+      if (isRunning) return;
+      
+      // Get the bet amount from the input
+      betAmount = parseFloat(betInput.value);
+      if (isNaN(betAmount) || betAmount <= 0) {
+        messageDisplay.textContent = "Please enter a valid bet amount!";
+        return;
+      }
+
+      isRunning = true;
+      multiplier = 1.0;
+      winnings = 0;
+      messageDisplay.textContent = "";
+      winningsDisplay.textContent = `Winnings: $${winnings.toFixed(2)}`;
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      betInput.disabled = true;
+
+      // Play the start sound
+      startSound.play();
+
+      interval = setInterval(() => {
+        multiplier += 0.1; // Increase multiplier
+        multiplierDisplay.textContent = multiplier.toFixed(2) + "x";
+        winnings = betAmount * multiplier;
+        winningsDisplay.textContent = `Winnings: $${winnings.toFixed(2)}`;
+
+        // Randomly decide if the game crashes
+        if (Math.random() < 0.05) { // 5% chance to crash each update
+          crashGame();
+        }
+      }, 100); // Update every 100ms
+    }
+
+    function stopGame() {
+      if (!isRunning) return;
+
+      isRunning = false;
+      clearInterval(interval);
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      betInput.disabled = false;
+      messageDisplay.textContent = `You cashed out at ${multiplier.toFixed(2)}x!`;
+      
+      // Play the stop sound
+      stopSound.play();
+    }
+
+    function crashGame() {
+      isRunning = false;
+      clearInterval(interval);
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      betInput.disabled = false;
+      messageDisplay.textContent = `Crashed at ${multiplier.toFixed(2)}x.`;
+
+      // Play the crash sound
+      crashSound.play();
+    }
+  </script>
+</body>
+</html>
